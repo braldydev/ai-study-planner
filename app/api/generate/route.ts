@@ -6,22 +6,19 @@ export async function POST(req: Request) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const { subject, days, hours } = await req.json();
+    const { subject, topic, level, days, hours } = await req.json();
 
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful AI study planner that creates realistic and motivating study schedules for students.",
-        },
         {
           role: "user",
           content: `
 Create a realistic study plan for:
 
 Subject: ${subject}
+Topic: ${topic}
+Study level: ${level}
 Days until exam: ${days}
 Hours per day: ${hours}
 
@@ -36,6 +33,8 @@ A: Answer here
 
 Rules:
 - Make the study plan realistic
+- Focus specifically on the topic provided
+- Adapt the difficulty to the study level
 - Split work across days
 - Keep it easy to follow
 - Make flashcards concise
