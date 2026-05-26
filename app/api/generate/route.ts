@@ -19,18 +19,26 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-Create a study plan for:
+Create a realistic study plan for:
 
 Subject: ${subject}
 Days until exam: ${days}
 Hours per day: ${hours}
 
+After the study plan, also generate 5 useful flashcards.
+
+Format flashcards like this:
+
+FLASHCARDS
+
+Q: Question here
+A: Answer here
+
 Rules:
-- Make the plan realistic
+- Make the study plan realistic
 - Split work across days
-- Be motivating but concise
-- Use clean formatting
-- Make it easy to follow
+- Keep it easy to follow
+- Make flashcards concise
 - Do NOT write huge paragraphs
 `,
         },
