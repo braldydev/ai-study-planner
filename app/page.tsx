@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import jsPDF from "jspdf";
 
 export default function Home() {
@@ -107,41 +110,51 @@ export default function Home() {
   }
 
   function downloadPDF() {
-  const doc = new jsPDF();
+    const doc = new jsPDF();
 
-  const pageHeight = doc.internal.pageSize.height;
+    const pageHeight = doc.internal.pageSize.height;
 
-  const margin = 15;
+    const margin = 15;
 
-  const maxWidth = 180;
+    const maxWidth = 180;
 
-  let y = 20;
+    let y = 20;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
 
-  doc.text("AI Study Plan", margin, y);
+    doc.text("AI Study Plan", margin, y);
 
-  y += 15;
+    y += 15;
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
 
-  const lines = doc.splitTextToSize(plan, maxWidth);
+    const cleanedPlan = plan
+  .replace(/\\frac{([^}]*)}{([^}]*)}/g, "($1 / $2)")
+  .replace(/\\left/g, "")
+  .replace(/\\right/g, "")
+  .replace(/\\cdot/g, "·")
+  .replace(/\\times/g, "×")
+  .replace(/[{}]/g, "")
+  .replace(/\\/g, "")
+  .replace(/\$/g, "");
 
-  lines.forEach((line: string) => {
-    if (y > pageHeight - 20) {
-      doc.addPage();
-      y = 20;
-    }
+const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
 
-    doc.text(line, margin, y);
+    lines.forEach((line: string) => {
+      if (y > pageHeight - 20) {
+        doc.addPage();
+        y = 20;
+      }
 
-    y += 7;
-  });
+      doc.text(line, margin, y);
 
-  doc.save(`${subject}-${topic}-study-plan.pdf`);
-}
+      y += 7;
+    });
+
+    doc.save(`${subject}-${topic}-study-plan.pdf`);
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black to-zinc-900 text-white flex flex-col items-center p-6">
@@ -209,7 +222,7 @@ export default function Home() {
             !days.trim() ||
             !hours.trim()
           }
-          className="bg-white text-black px-8 py-3 rounded-2xl font-bold hover:scale-105 hover:bg-gray-300 transition shadow-xl disabled:opacity-50"
+          className="bg-white text-black px-8 py-3 rounded-2xl font-bold hover:scale-105 hover:bg-gray-300 transition shadow-xl disabled:opacity-50 cursor-pointer"
         >
           {loading
             ? "⏳ Generating..."
@@ -228,7 +241,7 @@ export default function Home() {
 
             <button
               onClick={clearHistory}
-              className="bg-red-500 px-4 py-2 rounded-xl font-bold hover:bg-red-600 transition"
+              className="bg-red-500 px-4 py-2 rounded-xl font-bold hover:bg-red-600 transition cursor-pointer"
             >
               Clear
             </button>
@@ -239,7 +252,7 @@ export default function Home() {
               <button
                 key={index}
                 onClick={() => loadHistory(item.plan)}
-                className="bg-black border border-zinc-700 rounded-2xl p-4 text-left hover:scale-[1.01] transition"
+                className="bg-black border border-zinc-700 rounded-2xl p-4 text-left hover:scale-[1.01] transition cursor-pointer"
               >
                 <p className="font-bold text-xl">
                   {item.subject}
@@ -263,11 +276,14 @@ export default function Home() {
           <div className="prose prose-invert max-w-none">
             {plan.includes("FLASHCARDS") ? (
               <>
-                <ReactMarkdown>
-  {plan
-    .split("FLASHCARDS")[0]
-    .replace(/\*\*/g, "")}
-</ReactMarkdown>
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                >
+                  {plan
+                    .split("FLASHCARDS")[0]
+                    .replace(/\*\*/g, "")}
+                </ReactMarkdown>
 
                 <h2 className="text-3xl font-bold mt-8 mb-4">
                   FLASHCARDS 🧠
@@ -310,9 +326,14 @@ export default function Home() {
                                 ❓ {parts[0]}
                               </p>
 
-                              <p className="text-zinc-300 text-lg">
-                                💡 {parts[1]}
-                              </p>
+                              <div className="text-zinc-300 text-lg">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkMath]}
+                                  rehypePlugins={[rehypeKatex]}
+                                >
+                                  {parts[1]}
+                                </ReactMarkdown>
+                              </div>
                             </>
                           )}
                         </div>
@@ -321,21 +342,26 @@ export default function Home() {
                 </div>
               </>
             ) : (
-              <ReactMarkdown>{plan}</ReactMarkdown>
+              <ReactMarkdown
+                remarkPlugins={[remarkMath]}
+                rehypePlugins={[rehypeKatex]}
+              >
+                {plan}
+              </ReactMarkdown>
             )}
           </div>
 
           <div className="flex gap-4 mt-4 flex-wrap">
             <button
               onClick={copyPlan}
-              className="bg-white text-black px-4 py-2 rounded-xl font-bold hover:bg-gray-300 transition"
+              className="bg-white text-black px-4 py-2 rounded-xl font-bold hover:bg-gray-300 transition cursor-pointer"
             >
               {copied ? "Copied! ✅" : "Copy Plan 📋"}
             </button>
 
             <button
               onClick={downloadPDF}
-              className="bg-blue-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-blue-600 transition"
+              className="bg-blue-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-blue-600 transition cursor-pointer"
             >
               Download PDF 📄
             </button>
