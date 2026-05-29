@@ -157,13 +157,12 @@ const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
   }
 
   return (
-    <main className="min-h-screen flex flex-col lg:flex-row gap-6">
-
-      <div className="flex-1 flex flex-col items-center">
-        <h1 className="text-5xl font-bold mb-8 text-center mt-10">
+    <main className="min-h-screen bg-gradient-to-b from-black to-zinc-900 text-white flex flex-col items-center p-6">
+      <h1 className="text-5xl font-bold mb-8 text-center mt-10">
         AI Study Planner 📚
       </h1>
-  <div className="w-full max-w-md flex flex-col gap-4">
+
+      <div className="w-full max-w-md flex flex-col gap-4">
         <input
           type="text"
           placeholder="Subject..."
@@ -233,12 +232,9 @@ const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
         </button>
       </div>
 
-</div>
-      <div className="w-full flex flex-col lg:flex-row gap-6 mt-10 max-w-7xl">
-
+      <div className="w-full flex gap-6 mt-10 max-w-7xl">
   {history.length > 0 && (
-    <div className="w-full lg:w-[300px] lg:min-w-[300px] h-auto lg:max-h-[90vh] bg-zinc-900 rounded-2xl p-5 shadow-2xl overflow-hidden">
-      
+    <div className="w-[300px] bg-zinc-900 rounded-2xl p-4 shadow-2xl h-fit sticky top-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">
           History 🕒
@@ -252,18 +248,18 @@ const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 overflow-y-auto h-[calc(90vh-100px)] pr-2">
+      <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
         {history.map((item, index) => (
           <button
             key={index}
             onClick={() => loadHistory(item.plan)}
             className="bg-black border border-zinc-700 rounded-2xl p-4 text-left hover:scale-[1.01] transition cursor-pointer"
           >
-            <p className="font-bold text-2xl">
+            <p className="font-bold text-lg truncate">
               {item.subject}
             </p>
 
-            <p className="text-zinc-400">
+            <p className="text-zinc-400 truncate">
               {item.topic}
             </p>
 
@@ -276,109 +272,107 @@ const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
     </div>
   )}
 
-  <div className="flex-1 w-full max-w-5xl">
+  <div className="flex-1">
 
-    {plan && (
-      <div className="bg-zinc-900 p-6 rounded-2xl w-full shadow-2xl">
-        <div className="prose prose-invert max-w-none">
-          {plan.includes("FLASHCARDS") ? (
-            <>
+      {plan && (
+        <div className="bg-zinc-900 p-6 rounded-2xl w-full shadow-2xl">
+          <div className="prose prose-invert max-w-none">
+            {plan.includes("FLASHCARDS") ? (
+              <>
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                >
+                  {plan
+                    .split("FLASHCARDS")[0]
+                    .replace(/\*\*/g, "")}
+                </ReactMarkdown>
+
+                <h2 className="text-3xl font-bold mt-8 mb-4">
+                  FLASHCARDS 🧠
+                </h2>
+
+                <div className="flex flex-col gap-4">
+                  {plan
+                    .split("FLASHCARDS")[1]
+                    ?.split("Q:")
+                    .filter(
+                      (card) =>
+                        card.trim() !== "" &&
+                        card.includes("A:")
+                    )
+                    .map((card, index) => {
+                      const parts = card.split("A:");
+
+                      const isFlipped =
+                        flippedCards.includes(index);
+
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => toggleCard(index)}
+                          className="bg-black border border-zinc-700 rounded-2xl p-5 cursor-pointer hover:scale-[1.02] transition"
+                        >
+                          {!isFlipped ? (
+                            <>
+                              <p className="font-bold text-2xl mb-2">
+                                ❓ {parts[0]}
+                              </p>
+
+                              <p className="text-zinc-500 text-sm">
+                                Click to reveal answer 👀
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="font-bold text-2xl mb-4">
+                                ❓ {parts[0]}
+                              </p>
+
+                              <div className="text-zinc-300 text-lg">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkMath]}
+                                  rehypePlugins={[rehypeKatex]}
+                                >
+                                  {parts[1]}
+                                </ReactMarkdown>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </>
+            ) : (
               <ReactMarkdown
                 remarkPlugins={[remarkMath]}
                 rehypePlugins={[rehypeKatex]}
               >
-                {plan
-                  .split("FLASHCARDS")[0]
-                  .replace(/\*\*/g, "")}
+                {plan}
               </ReactMarkdown>
+            )}
+          </div>
 
-              <h2 className="text-3xl font-bold mt-8 mb-4">
-                FLASHCARDS 🧠
-              </h2>
-
-              <div className="flex flex-col gap-4">
-                {plan
-                  .split("FLASHCARDS")[1]
-                  ?.split("Q:")
-                  .filter(
-                    (card) =>
-                      card.trim() !== "" &&
-                      card.includes("A:")
-                  )
-                  .map((card, index) => {
-                    const parts = card.split("A:");
-
-                    const isFlipped =
-                      flippedCards.includes(index);
-
-                    return (
-                      <div
-                        key={index}
-                        onClick={() => toggleCard(index)}
-                        className="bg-black border border-zinc-700 rounded-2xl p-5 cursor-pointer hover:scale-[1.02] transition"
-                      >
-                        {!isFlipped ? (
-                          <>
-                            <p className="font-bold text-2xl mb-2">
-                              ❓ {parts[0]}
-                            </p>
-
-                            <p className="text-zinc-500 text-sm">
-                              Click to reveal answer 👀
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-bold text-2xl mb-4">
-                              ❓ {parts[0]}
-                            </p>
-
-                            <div className="text-zinc-300 text-lg">
-                              <ReactMarkdown
-                                remarkPlugins={[remarkMath]}
-                                rehypePlugins={[rehypeKatex]}
-                              >
-                                {parts[1]}
-                              </ReactMarkdown>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
-            </>
-          ) : (
-            <ReactMarkdown
-              remarkPlugins={[remarkMath]}
-              rehypePlugins={[rehypeKatex]}
+          <div className="flex gap-4 mt-4 flex-wrap">
+            <button
+              onClick={copyPlan}
+              className="bg-white text-black px-4 py-2 rounded-xl font-bold hover:bg-gray-300 transition cursor-pointer"
             >
-              {plan}
-            </ReactMarkdown>
-          )}
-        </div>
+              {copied ? "Copied! ✅" : "Copy Plan 📋"}
+            </button>
 
-        <div className="flex gap-4 mt-4 flex-wrap">
-          <button
-            onClick={copyPlan}
-            className="bg-white text-black px-4 py-2 rounded-xl font-bold hover:bg-gray-300 transition cursor-pointer"
-          >
-            {copied ? "Copied! ✅" : "Copy Plan 📋"}
-          </button>
-
-          <button
-            onClick={downloadPDF}
-            className="bg-blue-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-blue-600 transition cursor-pointer"
-          >
-            Download PDF 📄
-          </button>
+            <button
+              onClick={downloadPDF}
+              className="bg-blue-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-blue-600 transition cursor-pointer"
+            >
+              Download PDF 📄
+            </button>
+          </div>
         </div>
+      )}
       </div>
-    )}
-
-  </div>
-
 </div>
-</main>
+    </main>
   );
 } 
