@@ -9,6 +9,9 @@ import jsPDF from "jspdf";
 
 export default function Home() {
   const [subject, setSubject] = useState("");
+  const [quizMode, setQuizMode] = useState(false);
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [score, setScore] = useState(0);
   const [topic, setTopic] = useState("");
   const [level, setLevel] = useState("");
   const [days, setDays] = useState("");
@@ -18,6 +21,7 @@ export default function Home() {
   const [cooldown, setCooldown] = useState(false);
   const [copied, setCopied] = useState(false);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
+  const [search, setSearch] = useState("");
   const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
@@ -60,14 +64,16 @@ export default function Home() {
     setFlippedCards([]);
 
     const newHistory = [
-      {
-        subject,
-        topic,
-        level,
-        plan: data.plan,
-      },
-      ...history,
-    ];
+  {
+    subject,
+    topic,
+    level,
+    plan: data.plan,
+    date: new Date().toLocaleDateString(),
+    favorite: false,
+  },
+  ...history,
+].slice(0, 20);
 
     setHistory(newHistory);
 
@@ -105,42 +111,73 @@ export default function Home() {
   }
 
   function clearHistory() {
-    localStorage.removeItem("studyHistory");
-    setHistory([]);
-  }
+  localStorage.removeItem("studyHistory");
+  setHistory([]);
+}
+
+function toggleFavorite(index: number) {
+  const updatedHistory = [...history];
+
+  updatedHistory[index].favorite =
+    !updatedHistory[index].favorite;
+
+  setHistory(updatedHistory);
+
+  localStorage.setItem(
+    "studyHistory",
+    JSON.stringify(updatedHistory)
+  );
+}
+
+function deleteHistoryItem(indexToDelete: number) {
+  const updatedHistory = history.filter(
+    (_, index) => index !== indexToDelete
+  );
+
+  setHistory(updatedHistory);
+
+  localStorage.setItem(
+    "studyHistory",
+    JSON.stringify(updatedHistory)
+  );
+}
 
   function downloadPDF() {
-    const doc = new jsPDF();
+  const doc = new jsPDF();
 
-    const pageHeight = doc.internal.pageSize.height;
+  const margin = 15;
+  const maxWidth = 180;
+  const pageHeight = doc.internal.pageSize.height;
 
-    const margin = 15;
+  let y = 20;
 
-    const maxWidth = 180;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.text("AI Study Plan", margin, y);
 
-    let y = 20;
+  y += 15;
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
 
-    doc.text("AI Study Plan", margin, y);
+  const cleanedPlan = plan
+    .replace(/\*\*/g, "")
+    .replace(/#{1,6}\s/g, "")
+    .replace(/\\frac{([^}]*)}{([^}]*)}/g, "($1 / $2)")
+    .replace(/\\left/g, "")
+    .replace(/\\right/g, "")
+    .replace(/\\cdot/g, "·")
+    .replace(/\\times/g, "×")
+    .replace(/[{}]/g, "")
+    .replace(/\\/g, "")
+    .replace(/\$/g, "");
 
-    y += 15;
+  const paragraphs = cleanedPlan
+  .split("\n")
+  .filter((p) => p.trim() !== "");
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-
-    const cleanedPlan = plan
-  .replace(/\\frac{([^}]*)}{([^}]*)}/g, "($1 / $2)")
-  .replace(/\\left/g, "")
-  .replace(/\\right/g, "")
-  .replace(/\\cdot/g, "·")
-  .replace(/\\times/g, "×")
-  .replace(/[{}]/g, "")
-  .replace(/\\/g, "")
-  .replace(/\$/g, "");
-
-const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
+  paragraphs.forEach((paragraph) => {
+    const lines = doc.splitTextToSize(paragraph, maxWidth);
 
     lines.forEach((line: string) => {
       if (y > pageHeight - 20) {
@@ -149,17 +186,31 @@ const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
       }
 
       doc.text(line, margin, y);
-
-      y += 7;
+      y += 6;
     });
 
-    doc.save(`${subject}-${topic}-study-plan.pdf`);
-  }
+    y += 4;
+  });
+
+  doc.save(`${subject}-${topic}-study-plan.pdf`);
+}
 
   return (
-    <main className="min-h-screen flex flex-col lg:flex-row gap-6">
+    <main
+  className={`min-h-screen ${
+    !plan && history.length === 0
+      ? "flex flex-col items-center justify-center"
+      : "flex flex-col lg:flex-row gap-6"
+  }`}
+>
 
-      <div className="flex-1 flex flex-col items-center">
+      <div
+  className={`flex flex-col items-center ${
+    !plan && history.length === 0
+      ? ""
+      : "flex-1"
+  }`}
+>
         <h1 className="text-5xl font-bold mb-8 text-center mt-10">
         AI Study Planner 📚
       </h1>
@@ -241,8 +292,8 @@ const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
       
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">
-          History 🕒
-        </h2>
+  History 🕒 ({history.length})
+</h2>
 
         <button
           onClick={clearHistory}
@@ -252,34 +303,96 @@ const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
         </button>
       </div>
 
+      <input
+  type="text"
+  placeholder="🔍 Search history..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  className="w-full p-3 mb-3 rounded-xl bg-black border border-zinc-700 text-white"
+/>
       <div className="flex flex-col gap-3 overflow-y-auto h-[calc(90vh-100px)] pr-2">
-        {history.map((item, index) => (
-          <button
-            key={index}
-            onClick={() => loadHistory(item.plan)}
-            className="bg-black border border-zinc-700 rounded-2xl p-4 text-left hover:scale-[1.01] transition cursor-pointer"
-          >
-            <p className="font-bold text-2xl">
-              {item.subject}
-            </p>
+        {[...history]
+  .sort((a, b) =>
+    Number(b.favorite) - Number(a.favorite)
+  )
+  .filter(
+    (item) =>
+      item.subject
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      item.topic
+        .toLowerCase()
+        .includes(search.toLowerCase())
+  )
+  .map((item, index) => (
+          <div
+  key={index}
+  className="relative bg-black border border-zinc-700 rounded-2xl p-4 hover:border-zinc-400 hover:scale-[1.02] transition cursor-pointer"
+>
+  <button
+    onClick={() => loadHistory(item.plan)}
+    className="w-full text-left cursor-pointer"
+  >
+    <p className="font-bold text-2xl">
+      {item.subject}
+    </p>
 
-            <p className="text-zinc-400">
-              {item.topic}
-            </p>
+    <p className="text-zinc-400">
+      {item.topic}
+    </p>
 
-            <p className="text-zinc-500 text-sm">
-              {item.level}
-            </p>
-          </button>
+    <p className="text-zinc-500 text-sm">
+  {item.level}
+</p>
+
+<p className="text-zinc-600 text-xs mt-1">
+  {item.date}
+</p>
+  </button>
+
+  <button
+    onClick={() => toggleFavorite(index)}
+    className="absolute top-3 right-10 text-yellow-400 text-lg cursor-pointer hover:scale-125 transition"
+  >
+    {item.favorite ? "⭐" : "☆"}
+  </button>
+
+  <button
+  onClick={() => deleteHistoryItem(index)}
+  className="absolute top-3 right-3 text-red-500 hover:text-red-400 text-lg cursor-pointer hover:scale-125 transition"
+>
+  🗑️
+</button>
+</div>
         ))}
       </div>
     </div>
   )}
 
-  <div className="flex-1 w-full max-w-5xl">
+{!plan && history.length > 0 && (
+  <div className="bg-zinc-900 p-6 rounded-2xl w-full shadow-2xl flex flex-col items-center justify-center min-h-[500px]">
+    <div className="text-center">
+      <div className="text-6xl mb-4">📚</div>
 
+      <h2 className="text-3xl font-bold mb-4">
+        Select a Study Plan
+      </h2>
+
+      <p className="text-zinc-400 text-lg">
+        Choose a plan from History
+      </p>
+
+      <p className="text-zinc-500 mt-2">
+        or generate a new one.
+      </p>
+    </div>
+  </div>
+)}
+
+<div className="flex-1 w-full max-w-5xl">
     {plan && (
       <div className="bg-zinc-900 p-6 rounded-2xl w-full shadow-2xl">
+
         <div className="prose prose-invert max-w-none">
           {plan.includes("FLASHCARDS") ? (
             <>
@@ -291,7 +404,66 @@ const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
                   .split("FLASHCARDS")[0]
                   .replace(/\*\*/g, "")}
               </ReactMarkdown>
+<button
+  onClick={() => {
+  setQuizMode(!quizMode);
 
+  if (!quizMode) {
+    setQuizIndex(0);
+  }
+}}
+  className="mb-4 bg-blue-500 px-4 py-2 rounded-xl font-bold hover:bg-blue-600 transition cursor-pointer"
+>
+  {quizMode ? "Exit Quiz" : "Start Quiz"}
+</button>
+{quizMode && (
+  <p className="mb-4 text-zinc-400">
+    Question {quizIndex + 1} / {
+  plan
+    .split("FLASHCARDS")[1]
+    ?.split("Q:")
+    .filter(
+      (card) =>
+        card.trim() !== "" &&
+        card.includes("A:")
+    ).length
+}
+  </p>
+)}
+{quizMode && (
+  <div className="flex gap-3 mb-4">
+    <button
+      onClick={() => {
+        if (quizIndex > 0) {
+          setQuizIndex(quizIndex - 1);
+        }
+      }}
+      className="bg-zinc-700 px-4 py-2 rounded-xl font-bold hover:bg-zinc-600 transition cursor-pointer"
+    >
+      Previous
+    </button>
+
+    <button
+      onClick={() => {
+        const totalQuestions = plan
+          .split("FLASHCARDS")[1]
+          ?.split("Q:")
+          .filter(
+            (card) =>
+              card.trim() !== "" &&
+              card.includes("A:")
+          ).length || 0;
+
+        if (quizIndex < totalQuestions - 1) {
+          setQuizIndex(quizIndex + 1);
+        }
+      }}
+      className="bg-green-500 px-4 py-2 rounded-xl font-bold hover:bg-green-600 transition cursor-pointer"
+    >
+      Next Question
+    </button>
+  </div>
+)}
               <h2 className="text-3xl font-bold mt-8 mb-4">
                 FLASHCARDS 🧠
               </h2>
@@ -306,6 +478,7 @@ const lines = doc.splitTextToSize(cleanedPlan, maxWidth);
                       card.includes("A:")
                   )
                   .map((card, index) => {
+                    if (quizMode && index !== quizIndex) return null;
                     const parts = card.split("A:");
 
                     const isFlipped =
