@@ -1,12 +1,14 @@
 "use client";
-
+import {
+  UserButton,
+  SignInButton,
+} from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import jsPDF from "jspdf";
-
 export default function Home() {
   const [subject, setSubject] = useState("");
   const [usageCount, setUsageCount] = useState(0);
@@ -225,6 +227,11 @@ function deleteHistoryItem(indexToDelete: number) {
 }
 
   return (
+    <>
+<div className="absolute top-4 right-4 z-50 flex gap-3">
+  <SignInButton />
+  <UserButton />
+</div>
     <main
   className={`min-h-screen ${
     !plan && history.length === 0
@@ -606,5 +613,6 @@ function deleteHistoryItem(indexToDelete: number) {
 
 </div>
 </main>
-  );
-} 
+</>
+);
+}
