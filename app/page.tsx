@@ -10,10 +10,15 @@ import jsPDF from "jspdf";
 export default function Home() {
   const [subject, setSubject] = useState("");
   const [usageCount, setUsageCount] = useState(0);
- const [isPremium, setIsPremium] = useState(
-  typeof window !== "undefined" &&
-  localStorage.getItem("premium") === "true"
-);
+  const [isPremium, setIsPremium] = useState(false);
+  useEffect(() => {
+  const premium =
+    localStorage.getItem("premium");
+
+  if (premium === "true") {
+    setIsPremium(true);
+  }
+}, []);
   const [quizMode, setQuizMode] = useState(false);
   const [quizIndex, setQuizIndex] = useState(0);
   const [score, setScore] = useState(0);
