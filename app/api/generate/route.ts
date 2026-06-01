@@ -1,73 +1,58 @@
 import OpenAI from "openai";
 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 export async function POST(req: Request) {
-  try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+  const body = await req.json();
 
-    const { subject, topic, level, days, hours } = await req.json();
+  const {
+    subject,
+    topic,
+    level,
+    days,
+    hours,
+  } = body;
 
-    const response = await openai.chat.completions.create({
+  const prompt = `
+You are a professional study planner.
+
+Create ONLY a clean study plan.
+
+DO NOT:
+- say "Certainly"
+- talk like a chatbot
+- say "Feel free to ask"
+- add introductions or conclusions
+- add motivational text
+
+Output format:
+- Day by day plan
+- Clear sections
+- Short and clean formatting
+- Practical study tasks only
+
+Subject: ${subject}
+Topic: ${topic}
+Level: ${level}
+Days until exam: ${days}
+Hours per day: ${hours}
+`;
+
+  const completion =
+    await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
         {
           role: "user",
-          content: `
-Create a realistic study plan for:
-
-Subject: ${subject}
-Topic: ${topic}
-Study level: ${level}
-Days until exam: ${days}
-Hours per day: ${hours}
-
-After the study plan, also generate 5 useful flashcards.
-
-Format flashcards like this:
-
-FLASHCARDS
-
-Q: Question here
-A: Answer here
-
-Rules:
-- Make the study plan realistic
-- Focus specifically on the topic provided
-- Adapt the difficulty to the study level
-- Split work across days
-- Keep it easy to follow
-- Make flashcards concise
-- Do NOT write huge paragraphs
-`,
+          content: prompt,
         },
       ],
     });
 
-    return new Response(
-      JSON.stringify({
-        plan: response.choices[0].message.content,
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  } catch (error) {
-    console.log(error);
-
-    return new Response(
-      JSON.stringify({
-        plan: "Something went wrong.",
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  }
+  return Response.json({
+    plan:
+      completion.choices[0].message.content,
+  });
 }

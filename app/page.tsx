@@ -9,6 +9,11 @@ import jsPDF from "jspdf";
 
 export default function Home() {
   const [subject, setSubject] = useState("");
+  const [usageCount, setUsageCount] = useState(0);
+ const [isPremium, setIsPremium] = useState(
+  typeof window !== "undefined" &&
+  localStorage.getItem("premium") === "true"
+);
   const [quizMode, setQuizMode] = useState(false);
   const [quizIndex, setQuizIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -31,8 +36,19 @@ export default function Home() {
       setHistory(JSON.parse(savedHistory));
     }
   }, []);
+  useEffect(() => {
+  const savedUsage = localStorage.getItem("usageCount");
+
+  if (savedUsage) {
+    setUsageCount(Number(savedUsage));
+  }
+}, []);
 
   async function generatePlan() {
+    if (!isPremium && usageCount >= 3) {
+  alert("Free limit reached. Upgrade to Premium.");
+  return;
+}
     if (cooldown) return;
 
     setCooldown(true);
@@ -82,6 +98,14 @@ export default function Home() {
       JSON.stringify(newHistory)
     );
 
+    const newUsage = usageCount + 1;
+
+setUsageCount(newUsage);
+
+localStorage.setItem(
+  "usageCount",
+  String(newUsage)
+);
     setLoading(false);
   }
 
@@ -282,6 +306,30 @@ function deleteHistoryItem(indexToDelete: number) {
             ? "Wait 5s..."
             : "Generate Study Plan"}
         </button>
+        <p className="text-zinc-500 text-sm text-center mt-2">
+  {isPremium
+  ? "Premium Active 🚀"
+  : `Free plan: ${3 - usageCount} generations left`}
+  {!isPremium && (
+  <button
+  onClick={async () => {
+  setIsPremium(true);
+  localStorage.setItem("premium", "true");
+
+  const response = await fetch("/api/checkout", {
+    method: "POST",
+  });
+
+  const data = await response.json();
+
+  window.location.href = data.url;
+}}
+  className="mt-4 bg-yellow-500 text-black px-6 py-2 rounded-xl font-bold hover:bg-yellow-400 transition cursor-pointer"
+>
+  Upgrade to Premium 🚀
+</button>
+)}
+</p>
       </div>
 
 </div>
