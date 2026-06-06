@@ -19,4 +19,4 @@ AI-powered study planner built with Next.js and OpenAI API.
 - jsPDF
 
 ## Live Demo
-PASTE YOUR VERCEL LINK HERE
+(https://ai-study-planner-pi-three.vercel.app/)
