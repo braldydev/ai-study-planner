@@ -2,6 +2,7 @@
 import {
   UserButton,
   SignInButton,
+  useUser,
 } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -9,18 +10,42 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import jsPDF from "jspdf";
+import { supabase } from "@/lib/supabase";
 export default function Home() {
+  const { isSignedIn, user } = useUser();
   const [subject, setSubject] = useState("");
   const [usageCount, setUsageCount] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
   useEffect(() => {
-  const premium =
-    localStorage.getItem("premium");
+  if (!user?.id) return;
 
-  if (premium === "true") {
-    setIsPremium(true);
+  async function loadUser() {
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", user!.id)
+      .maybeSingle();
+
+    if (!existingUser) {
+      await supabase
+        .from("users")
+        .insert({
+          id: user!.id,
+          email: user!.primaryEmailAddress?.emailAddress,
+          premium: false,
+          generations_used: 0,
+        });
+
+      setIsPremium(false);
+      setUsageCount(0);
+    } else {
+      setIsPremium(existingUser.premium);
+      setUsageCount(existingUser.generations_used);
+    }
   }
-}, []);
+
+  loadUser();
+}, [user]);
   const [quizMode, setQuizMode] = useState(false);
   const [quizIndex, setQuizIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -43,14 +68,6 @@ export default function Home() {
       setHistory(JSON.parse(savedHistory));
     }
   }, []);
-  useEffect(() => {
-  const savedUsage = localStorage.getItem("usageCount");
-
-  if (savedUsage) {
-    setUsageCount(Number(savedUsage));
-  }
-}, []);
-
   async function generatePlan() {
     if (!isPremium && usageCount >= 3) {
   alert("Free limit reached. Upgrade to Premium.");
@@ -107,12 +124,14 @@ export default function Home() {
 
     const newUsage = usageCount + 1;
 
-setUsageCount(newUsage);
+await supabase
+  .from("users")
+  .update({
+    generations_used: newUsage,
+  })
+  .eq("id", user!.id);
 
-localStorage.setItem(
-  "usageCount",
-  String(newUsage)
-);
+setUsageCount(newUsage);
     setLoading(false);
   }
 
@@ -228,9 +247,16 @@ function deleteHistoryItem(indexToDelete: number) {
 
   return (
     <>
-<div className="absolute top-4 right-4 z-50 flex gap-3">
-  <SignInButton />
-  <UserButton />
+<div className="absolute top-6 right-6 z-50">
+  {!isSignedIn ? (
+    <SignInButton mode="modal">
+      <button className="bg-white text-black px-4 py-2 rounded-xl font-bold hover:bg-gray-200 transition cursor-pointer">
+        Sign In
+      </button>
+    </SignInButton>
+  ) : (
+    <UserButton />
+  )}
 </div>
     <main
   className={`min-h-screen ${
@@ -250,6 +276,55 @@ function deleteHistoryItem(indexToDelete: number) {
         <h1 className="text-5xl font-bold mb-8 text-center mt-10">
         AI Study Planner 📚
       </h1>
+      <div className="text-center mb-10">
+  <h2 className="text-5xl font-black text-white mb-4">
+    Study Smarter with AI
+  </h2>
+
+  <p className="text-zinc-400 text-lg max-w-xl">
+    Generate personalized study plans, quizzes and flashcards powered by AI.
+  </p>
+</div>
+
+{!plan && history.length === 0 && (
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 w-full max-w-4xl">
+    <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 hover:border-cyan-400 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 transition-all duration-300">
+      <div className="text-4xl mb-3">📚</div>
+
+      <h3 className="font-bold text-xl mb-2">
+        AI Study Plans
+      </h3>
+
+      <p className="text-zinc-400">
+        Personalized plans generated instantly.
+      </p>
+    </div>
+
+    <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 hover:border-cyan-400 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 transition-all duration-300">
+      <div className="text-4xl mb-3">🧠</div>
+
+      <h3 className="font-bold text-xl mb-2">
+        Smart Flashcards
+      </h3>
+
+      <p className="text-zinc-400">
+        Learn faster with active recall.
+      </p>
+    </div>
+
+    <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 hover:border-cyan-400 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 transition-all duration-300">
+      <div className="text-4xl mb-3">⚡</div>
+
+      <h3 className="font-bold text-xl mb-2">
+        Quiz Mode
+      </h3>
+
+      <p className="text-zinc-400">
+        Test your knowledge instantly.
+      </p>
+    </div>
+  </div>
+)}
   <div className="w-full max-w-md flex flex-col gap-4">
         <input
           type="text"
@@ -310,7 +385,7 @@ function deleteHistoryItem(indexToDelete: number) {
             !days.trim() ||
             !hours.trim()
           }
-          className="bg-white text-black px-8 py-3 rounded-2xl font-bold hover:scale-105 hover:bg-gray-300 transition shadow-xl disabled:opacity-50 cursor-pointer"
+          className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/30 transition-all duration-300 disabled:opacity-50 cursor-pointer"
         >
           {loading
             ? "⏳ Generating..."
@@ -319,18 +394,27 @@ function deleteHistoryItem(indexToDelete: number) {
             : "Generate Study Plan"}
         </button>
         <p className="text-zinc-500 text-sm text-center mt-2">
-  {isPremium
-  ? "Premium Active 🚀"
-  : `Free plan: ${3 - usageCount} generations left`}
+  {isPremium ? (
+  <span className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-4 py-2 rounded-full font-bold shadow-lg animate-pulse">
+    🚀 Premium Active
+  </span>
+) : (
+  <>Free plan: {Math.max(0, 3 - usageCount)} generations left</>
+)}
   {!isPremium && (
   <button
   onClick={async () => {
-  setIsPremium(true);
-  localStorage.setItem("premium", "true");
 
   const response = await fetch("/api/checkout", {
-    method: "POST",
-  });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    email: user?.primaryEmailAddress?.emailAddress,
+    userId: user?.id,
+  }),
+});
 
   const data = await response.json();
 
@@ -530,8 +614,9 @@ function deleteHistoryItem(indexToDelete: number) {
 
               <div className="flex flex-col gap-4">
                 {plan
-                  .split("FLASHCARDS")[1]
-                  ?.split("Q:")
+  .split("FLASHCARDS")[1]
+  ?.split("QUIZ")[0]
+  ?.split("Q:")
                   .filter(
                     (card) =>
                       card.trim() !== "" &&

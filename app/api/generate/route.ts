@@ -33,6 +33,25 @@ Output format:
 - Short and clean formatting
 - Practical study tasks only
 
+AFTER the study plan add:
+
+FLASHCARDS
+Q: ...
+A: ...
+
+Generate at least 5 flashcards.
+
+AFTER flashcards add:
+
+QUIZ
+1. ...
+A) ...
+B) ...
+C) ...
+Correct: ...
+
+Generate at least 5 quiz questions.
+
 Subject: ${subject}
 Topic: ${topic}
 Level: ${level}

@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-import { ClerkProvider } from "@clerk/nextjs";
+import {
+  ClerkProvider,
+  SignInButton,
+} from "@clerk/nextjs";
 
 export const metadata: Metadata = {
   title: "AI Study Planner",
@@ -14,9 +17,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        elements: {
+          userButtonAvatarBox: "cursor-pointer",
+          userButtonTrigger: "cursor-pointer",
+        },
+      }}
+    >
       <html lang="en">
-        <body>{children}</body>
+        <body>
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );

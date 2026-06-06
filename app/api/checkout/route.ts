@@ -3,11 +3,18 @@ import Stripe from "stripe";
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY!
 );
+export async function POST(req: Request) {
+  const body = await req.json();
 
-export async function POST() {
   const session =
     await stripe.checkout.sessions.create({
       mode: "subscription",
+
+      customer_email: body.email,
+
+      metadata: {
+        userId: body.userId,
+      },
 
       line_items: [
         {
@@ -19,10 +26,10 @@ export async function POST() {
       ],
 
       success_url:
-        "https://ai-study-planner-pi-three.vercel.app/?success=true",
+        "http://localhost:3000/?success=true",
 
       cancel_url:
-        "https://ai-study-planner-pi-three.vercel.app/?success=true",
+        "http://localhost:3000/?canceled=true",
     });
 
   return Response.json({
