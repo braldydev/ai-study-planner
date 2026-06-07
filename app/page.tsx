@@ -69,12 +69,14 @@ export default function Home() {
     }
   }, []);
   async function generatePlan() {
-    if (!isPremium && usageCount >= 3) {
-  alert("Free limit reached. Upgrade to Premium.");
-  return;
-}
-    if (cooldown) return;
+  if (!isPremium && usageCount >= 3) {
+    alert("Free limit reached. Upgrade to Premium.");
+    return;
+  }
 
+  if (cooldown) return;
+
+  try {
     setCooldown(true);
 
     setTimeout(() => {
@@ -104,16 +106,16 @@ export default function Home() {
     setFlippedCards([]);
 
     const newHistory = [
-  {
-    subject,
-    topic,
-    level,
-    plan: data.plan,
-    date: new Date().toLocaleDateString(),
-    favorite: false,
-  },
-  ...history,
-].slice(0, 20);
+      {
+        subject,
+        topic,
+        level,
+        plan: data.plan,
+        date: new Date().toLocaleDateString(),
+        favorite: false,
+      },
+      ...history,
+    ].slice(0, 20);
 
     setHistory(newHistory);
 
@@ -124,17 +126,22 @@ export default function Home() {
 
     const newUsage = usageCount + 1;
 
-await supabase
-  .from("users")
-  .update({
-    generations_used: newUsage,
-  })
-  .eq("id", user!.id);
+    await supabase
+      .from("users")
+      .update({
+        generations_used: newUsage,
+      })
+      .eq("id", user!.id);
 
-setUsageCount(newUsage);
+    setUsageCount(newUsage);
+
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong.");
+  } finally {
     setLoading(false);
   }
-
+}
   async function copyPlan() {
     await navigator.clipboard.writeText(plan);
 
