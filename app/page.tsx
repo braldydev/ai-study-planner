@@ -415,7 +415,6 @@ function deleteHistoryItem(indexToDelete: number) {
   alert("Please sign in first.");
   return;
 }
-
   const response = await fetch("/api/checkout", {
   method: "POST",
   headers: {
