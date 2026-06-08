@@ -17,6 +17,16 @@ const [selectedAnswer, setSelectedAnswer] = useState("");
 const [quizFinished, setQuizFinished] = useState(false);
   const [subject, setSubject] = useState("");
   const [usageCount, setUsageCount] = useState(0);
+  useEffect(() => {
+  if (!user) {
+    const guestUsage =
+      localStorage.getItem("guest_usage");
+
+    if (guestUsage) {
+      setUsageCount(Number(guestUsage));
+    }
+  }
+}, [user]);
   const [isPremium, setIsPremium] = useState(false);
   useEffect(() => {
   if (!user?.id) return;
@@ -68,7 +78,7 @@ const [quizFinished, setQuizFinished] = useState(false);
     }
   }, []);
   async function generatePlan() {
-  if (!isPremium && usageCount >= 3) {
+  if (!isPremium && usageCount >= (user ? 3 : 1)) {
     alert("Free limit reached. Upgrade to Premium.");
     return;
   }
@@ -169,8 +179,12 @@ if (user?.id) {
       generations_used: newUsage,
     })
     .eq("id", user.id);
+} else {
+  localStorage.setItem(
+    "guest_usage",
+    String(newUsage)
+  );
 }
-
   } catch (error) {
     console.error(error);
     alert("Something went wrong.");
