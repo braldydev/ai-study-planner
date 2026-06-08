@@ -78,7 +78,7 @@ const [quizFinished, setQuizFinished] = useState(false);
     }
   }, []);
   async function generatePlan() {
-  if (!isPremium && usageCount >= (user ? 3 : 1)) {
+  if (!isPremium && usageCount >= 3) {
     alert("Free limit reached. Upgrade to Premium.");
     return;
   }
