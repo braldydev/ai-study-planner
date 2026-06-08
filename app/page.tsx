@@ -214,9 +214,49 @@ if (user?.id) {
   }
 
   function loadHistory(savedPlan: string) {
-    setPlan(savedPlan);
-    setFlippedCards([]);
+  setPlan(savedPlan);
+
+  setFlippedCards([]);
+
+  const quizSection =
+    savedPlan.split("QUIZ")[1];
+
+  if (quizSection) {
+    const blocks = quizSection
+      .split(/\d+\./)
+      .filter((b: string) => b.trim());
+
+    const parsed = blocks.map(
+      (block: string) => {
+        const lines = block
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean);
+
+        return {
+          question: lines[0],
+          options: lines.filter(
+            (l) =>
+              l.startsWith("A)") ||
+              l.startsWith("B)") ||
+              l.startsWith("C)")
+          ),
+          correct:
+            lines.find((l) =>
+              l.startsWith("Correct:")
+            ) || "",
+        };
+      }
+    );
+
+    setQuizQuestions(parsed);
+
+    setCurrentQuestion(0);
+    setScore(0);
+    setQuizFinished(false);
+    setSelectedAnswer("");
   }
+}
 
   function clearHistory() {
   localStorage.removeItem("studyHistory");
