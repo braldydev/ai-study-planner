@@ -80,7 +80,9 @@ const [completedDays, setCompletedDays] = useState<number[]>([]);
   }, []);
   async function generatePlan() {
   if (!isPremium && usageCount >= (user ? 3 : 1)) {
-  alert("Free limit reached. Upgrade to Premium.");
+  alert(
+  "Free guest limit reached. Create a free account to continue."
+);
   return;
 }
 
@@ -525,10 +527,10 @@ const progress =
       0,
       3 - usageCount
     )} generations left`
-  : `Guest plan: ${Math.max(
-      0,
-      1 - usageCount
-    )} generation left`}</>
+  : `Guest trial: ${Math.max(
+    0,
+    1 - usageCount
+  )} free plan left`}</>
 )}
   {!isPremium && (
   <button
