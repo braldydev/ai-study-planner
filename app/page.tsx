@@ -10,6 +10,11 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import jsPDF from "jspdf";
+const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+const [currentQuestion, setCurrentQuestion] = useState(0);
+const [score, setScore] = useState(0);
+const [selectedAnswer, setSelectedAnswer] = useState("");
+const [quizFinished, setQuizFinished] = useState(false);
 import { supabase } from "@/lib/supabase";
 export default function Home() {
   const { isSignedIn, user } = useUser();
@@ -46,9 +51,6 @@ export default function Home() {
 
   loadUser();
 }, [user]);
-  const [quizMode, setQuizMode] = useState(false);
-  const [quizIndex, setQuizIndex] = useState(0);
-  const [score, setScore] = useState(0);
   const [topic, setTopic] = useState("");
   const [level, setLevel] = useState("");
   const [days, setDays] = useState("");
@@ -102,6 +104,39 @@ export default function Home() {
     const data = await response.json();
 
     setPlan(data.plan);
+
+    const quizSection = data.plan.split("QUIZ:")[1];
+
+if (quizSection) {
+  const blocks = quizSection
+    .split("Question:")
+    .filter(Boolean);
+
+  const parsed = blocks.map((block: string) => {
+    const lines = block
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    return {
+      question: lines[0],
+      options: lines
+        .filter(
+          (l) =>
+            l.startsWith("A)") ||
+            l.startsWith("B)") ||
+            l.startsWith("C)") ||
+            l.startsWith("D)")
+        ),
+      correct:
+        lines.find((l) =>
+          l.startsWith("Correct:")
+        ) || "",
+    };
+  });
+
+  setQuizQuestions(parsed);
+}
 
     setFlippedCards([]);
 
@@ -558,66 +593,6 @@ function deleteHistoryItem(indexToDelete: number) {
                   .split("FLASHCARDS")[0]
                   .replace(/\*\*/g, "")}
               </ReactMarkdown>
-<button
-  onClick={() => {
-  setQuizMode(!quizMode);
-
-  if (!quizMode) {
-    setQuizIndex(0);
-  }
-}}
-  className="mb-4 bg-blue-500 px-4 py-2 rounded-xl font-bold hover:bg-blue-600 transition cursor-pointer"
->
-  {quizMode ? "Exit Quiz" : "Start Quiz"}
-</button>
-{quizMode && (
-  <p className="mb-4 text-zinc-400">
-    Question {quizIndex + 1} / {
-  plan
-    .split("FLASHCARDS")[1]
-    ?.split("Q:")
-    .filter(
-      (card) =>
-        card.trim() !== "" &&
-        card.includes("A:")
-    ).length
-}
-  </p>
-)}
-{quizMode && (
-  <div className="flex gap-3 mb-4">
-    <button
-      onClick={() => {
-        if (quizIndex > 0) {
-          setQuizIndex(quizIndex - 1);
-        }
-      }}
-      className="bg-zinc-700 px-4 py-2 rounded-xl font-bold hover:bg-zinc-600 transition cursor-pointer"
-    >
-      Previous
-    </button>
-
-    <button
-      onClick={() => {
-        const totalQuestions = plan
-          .split("FLASHCARDS")[1]
-          ?.split("Q:")
-          .filter(
-            (card) =>
-              card.trim() !== "" &&
-              card.includes("A:")
-          ).length || 0;
-
-        if (quizIndex < totalQuestions - 1) {
-          setQuizIndex(quizIndex + 1);
-        }
-      }}
-      className="bg-green-500 px-4 py-2 rounded-xl font-bold hover:bg-green-600 transition cursor-pointer"
-    >
-      Next Question
-    </button>
-  </div>
-)}
               <h2 className="text-3xl font-bold mt-8 mb-4">
                 FLASHCARDS 🧠
               </h2>
@@ -633,7 +608,6 @@ function deleteHistoryItem(indexToDelete: number) {
                       card.includes("A:")
                   )
                   .map((card, index) => {
-                    if (quizMode && index !== quizIndex) return null;
                     const parts = card.split("A:");
 
                     const isFlipped =
@@ -675,6 +649,103 @@ function deleteHistoryItem(indexToDelete: number) {
                     );
                   })}
               </div>
+              {quizQuestions.length > 0 && (
+  <div className="mt-10 bg-black border border-zinc-700 p-6 rounded-2xl">
+    <h2 className="text-3xl font-bold mb-6">
+      Quiz Mode ⚡
+    </h2>
+
+    {!quizFinished ? (
+      <>
+        <h3 className="text-2xl font-bold mb-6">
+          {
+            quizQuestions[currentQuestion]
+              ?.question
+          }
+        </h3>
+
+        <div className="flex flex-col gap-3">
+          {quizQuestions[
+            currentQuestion
+          ]?.options.map(
+            (option: string, i: number) => (
+              <button
+                key={i}
+                onClick={() => {
+                  if (selectedAnswer) return;
+
+                  setSelectedAnswer(option);
+
+                  const isCorrect =
+                    quizQuestions[
+                      currentQuestion
+                    ].correct.includes(
+                      option.charAt(0)
+                    );
+
+                  if (isCorrect) {
+                    setScore((prev) => prev + 1);
+                  }
+
+                  setTimeout(() => {
+                    setSelectedAnswer("");
+
+                    if (
+                      currentQuestion + 1 <
+                      quizQuestions.length
+                    ) {
+                      setCurrentQuestion(
+                        (prev) => prev + 1
+                      );
+                    } else {
+                      setQuizFinished(true);
+                    }
+                  }, 1200);
+                }}
+                className={`p-4 rounded-xl text-left font-semibold transition ${
+                  selectedAnswer === option
+                    ? quizQuestions[
+                        currentQuestion
+                      ].correct.includes(
+                        option.charAt(0)
+                      )
+                      ? "bg-green-600"
+                      : "bg-red-600"
+                    : "bg-zinc-800 hover:bg-zinc-700"
+                }`}
+              >
+                {option}
+              </button>
+            )
+          )}
+        </div>
+
+        <p className="mt-5 text-zinc-400">
+          Question {currentQuestion + 1} /{" "}
+          {quizQuestions.length}
+        </p>
+      </>
+    ) : (
+      <div>
+        <h3 className="text-3xl font-bold">
+          Final Score: {score}/
+          {quizQuestions.length}
+        </h3>
+
+        <button
+          onClick={() => {
+            setCurrentQuestion(0);
+            setScore(0);
+            setQuizFinished(false);
+          }}
+          className="mt-6 bg-blue-500 px-6 py-3 rounded-xl font-bold hover:bg-blue-600 transition"
+        >
+          Retry Quiz
+        </button>
+      </div>
+    )}
+  </div>
+)}
             </>
           ) : (
             <ReactMarkdown

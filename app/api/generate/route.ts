@@ -33,6 +33,22 @@ Output format:
 - Short and clean formatting
 - Practical study tasks only
 
+ALSO generate:
+
+FLASHCARDS:
+Q:
+A:
+
+5 quiz questions in this format:
+
+QUIZ:
+Question:
+A)
+B)
+C)
+D)
+Correct:
+
 AFTER the study plan add:
 
 FLASHCARDS
