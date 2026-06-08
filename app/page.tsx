@@ -58,6 +58,7 @@ const [quizFinished, setQuizFinished] = useState(false);
 
   loadUser();
 }, [user]);
+const [completedDays, setCompletedDays] = useState<number[]>([]);
   const [topic, setTopic] = useState("");
   const [level, setLevel] = useState("");
   const [days, setDays] = useState("");
@@ -235,7 +236,18 @@ function toggleFavorite(index: number) {
     JSON.stringify(updatedHistory)
   );
 }
-
+function toggleCompletedDay(day: number) {
+  if (completedDays.includes(day)) {
+    setCompletedDays(
+      completedDays.filter((d) => d !== day)
+    );
+  } else {
+    setCompletedDays([
+      ...completedDays,
+      day,
+    ]);
+  }
+}
 function deleteHistoryItem(indexToDelete: number) {
   const updatedHistory = history.filter(
     (_, index) => index !== indexToDelete
@@ -301,7 +313,19 @@ function deleteHistoryItem(indexToDelete: number) {
 
   doc.save(`${subject}-${topic}-study-plan.pdf`);
 }
+const totalDays =
+  (
+    plan.match(/## Day \d+/g) || []
+  ).length;
 
+const progress =
+  totalDays > 0
+    ? Math.round(
+        (completedDays.length /
+          totalDays) *
+          100
+      )
+    : 0;
   return (
     <>
 <div className="absolute top-6 right-6 z-50">
@@ -609,11 +633,69 @@ if (!user) {
     {plan && (
       <div className="bg-zinc-900 p-6 rounded-2xl w-full shadow-2xl">
 
+<div className="mb-6">
+  <div className="flex justify-between mb-2">
+    <p className="font-bold text-lg">
+      Study Progress 📈
+    </p>
+
+    <p className="text-cyan-400 font-bold">
+      {progress}%
+    </p>
+  </div>
+
+  <div className="w-full bg-zinc-800 rounded-full h-4 overflow-hidden">
+    <div
+      className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full transition-all duration-500"
+      style={{
+        width: `${progress}%`,
+      }}
+    />
+  </div>
+</div>
         <div className="prose prose-invert max-w-none">
           {plan.includes("FLASHCARDS") ? (
             <>
               <ReactMarkdown
-              >
+  components={{
+    h2: ({ children }) => {
+      const text =
+        children?.toString() || "";
+
+      const match =
+        text.match(/Day (\d+)/);
+
+      if (!match) {
+        return <h2>{children}</h2>;
+      }
+
+      const dayNumber = Number(match[1]);
+
+      return (
+        <div className="flex items-center gap-3 mt-6 mb-3">
+          <button
+            onClick={() =>
+              toggleCompletedDay(dayNumber)
+            }
+            className={`w-7 h-7 rounded-full border-2 flex items-center justify-center cursor-pointer ${
+              completedDays.includes(dayNumber)
+                ? "bg-green-500 border-green-500"
+                : "border-zinc-500"
+            }`}
+          >
+            {completedDays.includes(
+              dayNumber
+            ) && "✓"}
+          </button>
+
+          <h2 className="text-3xl font-bold">
+            {children}
+          </h2>
+        </div>
+      );
+    },
+  }}
+>
                 {plan
                   .split("FLASHCARDS")[0]
                   .replace(/\*\*/g, "")}

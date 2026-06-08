@@ -65,7 +65,7 @@ STUDY PLAN RULES:
 
 GOOD EXAMPLE:
 
-Day 1
+## Day 1
 Goal: Understand triangle basics
 
 Tasks:
@@ -82,7 +82,7 @@ Review:
 - Review mistakes
 - Repeat difficult concepts for 15 minutes
 
-Day 2
+## Day 2
 Goal: Learn Pythagorean theorem
 
 Tasks:
