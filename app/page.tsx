@@ -456,7 +456,15 @@ function deleteHistoryItem(indexToDelete: number) {
     🚀 Premium Active
   </span>
 ) : (
-  <>Free plan: {Math.max(0, 3 - usageCount)} generations left</>
+  <>{isSignedIn
+  ? `Free plan: ${Math.max(
+      0,
+      3 - usageCount
+    )} generations left`
+  : `Guest plan: ${Math.max(
+      0,
+      1 - usageCount
+    )} generation left`}</>
 )}
   {!isPremium && (
   <button
