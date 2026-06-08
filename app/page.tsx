@@ -158,16 +158,18 @@ if (quizSection) {
       JSON.stringify(newHistory)
     );
 
-    const newUsage = usageCount + 1;
+    if (user?.id) {
+  const newUsage = usageCount + 1;
 
-    await supabase
-      .from("users")
-      .update({
-        generations_used: newUsage,
-      })
-      .eq("id", user!.id);
+  await supabase
+    .from("users")
+    .update({
+      generations_used: newUsage,
+    })
+    .eq("id", user.id);
 
-    setUsageCount(newUsage);
+  setUsageCount(newUsage);
+}
 
   } catch (error) {
     console.error(error);
@@ -446,6 +448,10 @@ function deleteHistoryItem(indexToDelete: number) {
   <button
   onClick={async () => {
     if (!user) {
+  alert("Please sign in first.");
+  return;
+}
+if (!user) {
   alert("Please sign in first.");
   return;
 }
