@@ -6,9 +6,6 @@ import {
 } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
 import jsPDF from "jspdf";
 const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
 const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -105,14 +102,16 @@ export default function Home() {
 
     setPlan(data.plan);
 
-    const quizSection = data.plan.split("QUIZ:")[1];
+    const quizSection =
+  data.plan.split("QUIZ")[1];
 
 if (quizSection) {
   const blocks = quizSection
-    .split("Question:")
-    .filter(Boolean);
+    .split(/\d+\./)
+    .filter((b: string) => b.trim());
 
-  const parsed = blocks.map((block: string) => {
+  const parsed = blocks.map(
+    (block: string) => {
     const lines = block
       .split("\n")
       .map((l) => l.trim())
@@ -586,8 +585,6 @@ function deleteHistoryItem(indexToDelete: number) {
           {plan.includes("FLASHCARDS") ? (
             <>
               <ReactMarkdown
-                remarkPlugins={[remarkMath]}
-                rehypePlugins={[rehypeKatex]}
               >
                 {plan
                   .split("FLASHCARDS")[0]
@@ -637,8 +634,6 @@ function deleteHistoryItem(indexToDelete: number) {
 
                             <div className="text-zinc-300 text-lg">
                               <ReactMarkdown
-                                remarkPlugins={[remarkMath]}
-                                rehypePlugins={[rehypeKatex]}
                               >
                                 {parts[1]}
                               </ReactMarkdown>
@@ -749,8 +744,6 @@ function deleteHistoryItem(indexToDelete: number) {
             </>
           ) : (
             <ReactMarkdown
-              remarkPlugins={[remarkMath]}
-              rehypePlugins={[rehypeKatex]}
             >
               {plan}
             </ReactMarkdown>

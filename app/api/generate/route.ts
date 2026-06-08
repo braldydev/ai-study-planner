@@ -18,55 +18,46 @@ export async function POST(req: Request) {
   const prompt = `
 You are a professional study planner.
 
-Create ONLY a clean study plan.
+Create:
+1. Study plan
+2. Flashcards
+3. Quiz
 
-DO NOT:
-- say "Certainly"
-- talk like a chatbot
-- say "Feel free to ask"
-- add introductions or conclusions
-- add motivational text
+IMPORTANT RULES:
+- NO LaTeX
+- NO special math formatting
+- Write math normally
+- Example:
+BAD: \\sqrt{a+b}
+GOOD: square root of a+b
 
-Output format:
-- Day by day plan
-- Clear sections
-- Short and clean formatting
-- Practical study tasks only
+BAD: \\frac{a+b}{2}
+GOOD: (a+b)/2
 
-ALSO generate:
-
-FLASHCARDS:
-Q:
-A:
-
-5 quiz questions in this format:
-
-QUIZ:
-Question:
-A)
-B)
-C)
-D)
-Correct:
-
-AFTER the study plan add:
-
+FLASHCARDS FORMAT:
 FLASHCARDS
-Q: ...
-A: ...
+Q: question
+A: answer
 
-Generate at least 5 flashcards.
+Q: question
+A: answer
 
-AFTER flashcards add:
-
+QUIZ FORMAT:
 QUIZ
-1. ...
-A) ...
-B) ...
-C) ...
-Correct: ...
 
-Generate at least 5 quiz questions.
+1. Question here
+A) option
+B) option
+C) option
+Correct: A
+
+2. Question here
+A) option
+B) option
+C) option
+Correct: B
+
+DO NOT mix flashcards and quiz together.
 
 Subject: ${subject}
 Topic: ${topic}
