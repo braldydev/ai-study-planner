@@ -7,14 +7,14 @@ import {
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import jsPDF from "jspdf";
-const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+import { supabase } from "@/lib/supabase";
+export default function Home() {
+  const { isSignedIn, user } = useUser();
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
 const [currentQuestion, setCurrentQuestion] = useState(0);
 const [score, setScore] = useState(0);
 const [selectedAnswer, setSelectedAnswer] = useState("");
 const [quizFinished, setQuizFinished] = useState(false);
-import { supabase } from "@/lib/supabase";
-export default function Home() {
-  const { isSignedIn, user } = useUser();
   const [subject, setSubject] = useState("");
   const [usageCount, setUsageCount] = useState(0);
   const [isPremium, setIsPremium] = useState(false);

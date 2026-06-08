@@ -23,39 +23,71 @@ Create:
 2. Flashcards
 3. Quiz
 
-IMPORTANT RULES:
-- NO LaTeX
-- NO special math formatting
-- Write math normally
+STRICT RULES:
+
+- NEVER use LaTeX
+- NEVER use symbols like:
+\\sqrt
+\\frac
+\\(
+\\)
+^
+{}
+[]
+=
+- Write math in plain readable text only
 - Example:
-BAD: \\sqrt{a+b}
-GOOD: square root of a+b
+BAD: \\sqrt{16}
+GOOD: square root of 16
 
-BAD: \\frac{a+b}{2}
-GOOD: (a+b)/2
+BAD: a^2 + b^2 = c^2
+GOOD: a squared plus b squared equals c squared
 
-FLASHCARDS FORMAT:
+FLASHCARDS RULES:
+- Flashcards MUST only contain:
+Q:
+A:
+- Keep answers short and clean
+- No formatting symbols
+- No markdown
+- No bullet points
+
+QUIZ RULES:
+- EVERY question MUST contain:
+A)
+B)
+C)
+Correct:
+- NEVER leave a question incomplete
+- NEVER generate open-ended questions
+- NEVER generate quiz questions without options
+- ALWAYS generate exactly 3 options
+- Correct answer MUST always be A, B, or C
+- Questions must be short and readable
+
+FORMAT EXACTLY LIKE THIS:
+
 FLASHCARDS
-Q: question
-A: answer
 
-Q: question
-A: answer
+Q: What is gravity?
+A: A force that pulls objects together.
 
-QUIZ FORMAT:
+Q: What is velocity?
+A: Speed in a direction.
+
 QUIZ
 
-1. Question here
-A) option
-B) option
-C) option
-Correct: A
-
-2. Question here
-A) option
-B) option
-C) option
+1. What is 2 plus 2?
+A) 3
+B) 4
+C) 5
 Correct: B
+
+2. What planet do we live on?
+A) Mars
+B) Venus
+C) Earth
+Correct: C
 
 DO NOT mix flashcards and quiz together.
 
