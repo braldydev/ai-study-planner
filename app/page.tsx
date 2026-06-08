@@ -411,6 +411,10 @@ function deleteHistoryItem(indexToDelete: number) {
   {!isPremium && (
   <button
   onClick={async () => {
+    if (!user) {
+  alert("Please sign in first.");
+  return;
+}
 
   const response = await fetch("/api/checkout", {
   method: "POST",
