@@ -36,12 +36,67 @@ STRICT RULES:
 []
 =
 - Write math in plain readable text only
-- Example:
+
+Example:
 BAD: \\sqrt{16}
 GOOD: square root of 16
 
 BAD: a^2 + b^2 = c^2
 GOOD: a squared plus b squared equals c squared
+
+Create a HIGH QUALITY study plan.
+
+STUDY PLAN RULES:
+
+- Every day must contain:
+1. Goal
+2. Tasks
+3. Practice
+4. Review
+
+- Make the plan feel like a real premium learning app
+- Tasks must be specific and actionable
+- Include practice questions, revision, and active recall
+- Mention estimated study effort naturally
+- Keep formatting clean and readable
+- Do NOT make the plan too short
+- Make every day different
+- Focus on practical learning
+
+GOOD EXAMPLE:
+
+Day 1
+Goal: Understand triangle basics
+
+Tasks:
+- Learn the difference between equilateral, isosceles, and scalene triangles
+- Watch a short explanation of triangle angle rules
+- Write down the most important formulas
+- Solve 5 beginner problems
+
+Practice:
+- Identify triangle types from examples
+- Calculate missing angles in simple triangles
+
+Review:
+- Review mistakes
+- Repeat difficult concepts for 15 minutes
+
+Day 2
+Goal: Learn Pythagorean theorem
+
+Tasks:
+- Study how the theorem works
+- Solve 10 right triangle problems
+- Create 3 flashcards from mistakes
+
+Practice:
+- Find missing triangle sides
+- Apply theorem to real examples
+
+Review:
+- Review Day 1 flashcards
+- Repeat weak topics
 
 FLASHCARDS RULES:
 - Flashcards MUST only contain:
