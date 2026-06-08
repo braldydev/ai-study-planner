@@ -158,17 +158,17 @@ if (quizSection) {
       JSON.stringify(newHistory)
     );
 
-    if (user?.id) {
-  const newUsage = usageCount + 1;
+    const newUsage = usageCount + 1;
 
+setUsageCount(newUsage);
+
+if (user?.id) {
   await supabase
     .from("users")
     .update({
       generations_used: newUsage,
     })
     .eq("id", user.id);
-
-  setUsageCount(newUsage);
 }
 
   } catch (error) {
