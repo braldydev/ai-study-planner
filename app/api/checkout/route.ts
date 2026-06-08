@@ -25,11 +25,9 @@ export async function POST(req: Request) {
         },
       ],
 
-      success_url:
-        "http://localhost:3000/?success=true",
+      success_url: "https://ai-study-planner-pi-three.vercel.app/?success=true",
 
-      cancel_url:
-        "http://localhost:3000/?canceled=true",
+cancel_url: "https://ai-study-planner-pi-three.vercel.app/",
     });
 
   return Response.json({
