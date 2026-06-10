@@ -59,6 +59,9 @@ const [quizFinished, setQuizFinished] = useState(false);
   loadUser();
 }, [user]);
 const [completedDays, setCompletedDays] = useState<number[]>([]);
+const [streak, setStreak] = useState(0);
+const [lastStudyDate, setLastStudyDate] =
+  useState("");
   const [topic, setTopic] = useState("");
   const [level, setLevel] = useState("");
   const [days, setDays] = useState("");
@@ -70,10 +73,23 @@ const [completedDays, setCompletedDays] = useState<number[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [history, setHistory] = useState<any[]>([]);
+useEffect(() => {
+  const savedStreak =
+    localStorage.getItem("study_streak");
 
+  const savedDate =
+    localStorage.getItem("last_study_date");
+
+  if (savedStreak) {
+    setStreak(Number(savedStreak));
+  }
+
+  if (savedDate) {
+    setLastStudyDate(savedDate);
+  }
+}, []);
   useEffect(() => {
     const savedHistory = localStorage.getItem("studyHistory");
-
     if (savedHistory) {
       setHistory(JSON.parse(savedHistory));
     }
@@ -114,6 +130,44 @@ const [completedDays, setCompletedDays] = useState<number[]>([]);
     const data = await response.json();
 
     setPlan(data.plan);
+    const today =
+  new Date().toDateString();
+
+const yesterday = new Date();
+
+yesterday.setDate(
+  yesterday.getDate() - 1
+);
+
+if (lastStudyDate !== today) {
+  if (
+    lastStudyDate ===
+    yesterday.toDateString()
+  ) {
+    const newStreak = streak + 1;
+
+    setStreak(newStreak);
+
+    localStorage.setItem(
+      "study_streak",
+      String(newStreak)
+    );
+  } else {
+    setStreak(1);
+
+    localStorage.setItem(
+      "study_streak",
+      "1"
+    );
+  }
+
+  setLastStudyDate(today);
+
+  localStorage.setItem(
+    "last_study_date",
+    today
+  );
+}
 
     const quizSection =
   data.plan.split("QUIZ")[1];
@@ -397,6 +451,13 @@ const progress =
   }`}
 >
         <h1 className="text-5xl font-bold mb-8 text-center mt-10">
+          {streak > 0 && (
+  <div className="mb-3 flex justify-center">
+    <span className="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full font-semibold border border-orange-500/30 text-sm">
+      🔥 {streak} day streak
+    </span>
+  </div>
+)}
         AI Study Planner 📚
       </h1>
       <div className="text-center mb-10">
