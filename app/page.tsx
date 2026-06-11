@@ -409,6 +409,17 @@ function deleteHistoryItem(indexToDelete: number) {
 
   doc.save(`${subject}-${topic}-study-plan.pdf`);
 }
+{!plan && (
+  <div className="text-center text-zinc-500 mt-32">
+    <h2 className="text-2xl font-bold mb-4">
+      Your AI study plan will appear here 📚
+    </h2>
+
+    <p>
+      Enter a subject and let AI create your personalized roadmap.
+    </p>
+  </div>
+)}
 const totalDays =
   (
     plan.match(/## Day \d+/g) || []
