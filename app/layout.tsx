@@ -8,8 +8,17 @@ import {
 } from "@clerk/nextjs";
 
 export const metadata: Metadata = {
-  title: "AI Study Planner",
-  description: "AI-powered study planner",
+  title: "StudyNovaAI - AI Study Planner",
+  description:
+    "Generate AI-powered study plans, quizzes and flashcards instantly.",
+    keywords: [
+  "AI study planner",
+  "study planner",
+  "AI flashcards",
+  "AI quiz generator",
+  "study app",
+  "student AI tool",
+],
 };
 
 export default function RootLayout({
