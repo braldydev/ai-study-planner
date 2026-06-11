@@ -130,43 +130,39 @@ useEffect(() => {
     const data = await response.json();
 
     setPlan(data.plan);
-    const today =
-  new Date().toDateString();
+    const today = new Date().toDateString();
 
 const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
 
-yesterday.setDate(
-  yesterday.getDate() - 1
-);
+const savedStreak =
+  Number(localStorage.getItem("study_streak")) || 0;
 
-if (lastStudyDate !== today) {
+const savedDate =
+  localStorage.getItem("last_study_date");
+
+if (savedDate !== today) {
+  let newStreak = 1;
+
   if (
-    lastStudyDate ===
-    yesterday.toDateString()
+    savedDate === yesterday.toDateString()
   ) {
-    const newStreak = streak + 1;
-
-    setStreak(newStreak);
-
-    localStorage.setItem(
-      "study_streak",
-      String(newStreak)
-    );
-  } else {
-    setStreak(1);
-
-    localStorage.setItem(
-      "study_streak",
-      "1"
-    );
+    newStreak = savedStreak + 1;
   }
 
-  setLastStudyDate(today);
+  setStreak(newStreak);
+
+  localStorage.setItem(
+    "study_streak",
+    String(newStreak)
+  );
 
   localStorage.setItem(
     "last_study_date",
     today
   );
+
+  setLastStudyDate(today);
 }
 
     const quizSection =
